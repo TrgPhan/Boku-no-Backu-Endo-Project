@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <header>
+        <h2>
+            <a href="/">My Wonderful App</a> <!-- /* help us get back to the homepage */ -->
+        </h2>
+    </header>
+
+    <main>
+        <h3>LoguIn Webu</h3>
+        <p>Kore wa boku no Login Webu.</p>
+        <form action="/register" method="POST">
+            <fieldset>
+                <legend>Create an wibu account</legend>
+                <label>
+                    <span>Email</span>
+                    <input type="email" name="email" required style="display: block; margin-top: 5px;">
+                </label>
+                <label>
+                    <span>Password</span>
+                    <input type="password" name="password" required style="display: block; margin-top: 5px;">
+                </label>
+                <label>
+                    <span>Confirm Password</span>
+                    <input type="password" name="password" required style="display: block; margin-top: 5px;">
+                </label>
+                <br>
+                <button type="submit">Sign Up</button>
+            </fieldset>
+        </form>
+    </main>
+
+    <footer>
+        <small>&copy; 2020 My Wonderful App</small>
+    </footer>
+</body>
+
+</html>

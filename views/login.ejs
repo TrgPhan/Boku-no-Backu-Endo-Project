@@ -18,23 +18,28 @@
     <main>
         <h3>LoguIn Webu</h3>
         <p>Kore wa boku no Login Webu.</p>
-        <form action="/register" method="POST">
-            <fieldset>
+        <form action="/login" method="POST">
+            <% login_errors.forEach(login_error=> { %>
+                <p class="notice">
+                    <%= login_error %>
+                </p>
+                <% }) %>
+                    <fieldset>
 
-                <legend>Create an wibu account</legend>
-                <label>
-                    <span>Email</span>
-                    <input type="email" name="email" required style="display: block; margin-top: 5px;">
-                </label>
-                <label>
-                    <span>Password</span>
-                    <input type="password" name="password" required style="display: block; margin-top: 5px;">
-                </label>
-                <br>
-                <button type="submit">Log In</button>
+                        <legend>Create an wibu account</legend>
+                        <label>
+                            <span>Email</span>
+                            <input type="email" name="email" required style="display: block; margin-top: 5px;">
+                        </label>
+                        <label>
+                            <span>Password</span>
+                            <input type="password" name="password" required style="display: block; margin-top: 5px;">
+                        </label>
+                        <br>
+                        <button type="submit">Log In</button>
 
-                <p>Don't have an account? <a href="/signup">Sign Up</a></p>
-            </fieldset>
+                        <p>Don't have an account? <a href="/signup">Sign Up</a></p>
+                    </fieldset>
         </form>
     </main>
 

@@ -19,7 +19,7 @@
         <h3>LoguIn Webu</h3>
         <p>Kore wa boku no Login Webu.</p>
         <form action="/login" method="POST">
-            <% login_errors.forEach(login_error=> { %>
+            <% errors.forEach(login_error=> { %>
                 <p class="notice">
                     <%= login_error %>
                 </p>

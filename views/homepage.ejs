@@ -14,10 +14,13 @@
             <a href="/">My Wonderful App</a>
         </h2>
         <nav>
-            <% if (!user) { %>
+            <% if (locals.user) { %>
                 <a href="/profile">Profile</a> |
                 <a href="/create-post">Create Post</a> |
-                <a href="/logout">Log Out</a>
+                <form action="/logout" method="POST" style="display:inline;">
+                    <button type="submit" style="border:none; background:none; cursor:pointer; color:white;">Log
+                        Out</button>
+                </form>
                 <% } else { %>
                     <a href="/login">Log In</a> |
                     <a href="/signup">Sign Up</a>

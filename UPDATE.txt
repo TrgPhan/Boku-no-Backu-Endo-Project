@@ -1,0 +1,3 @@
+Lần 1: lỗi ko run đc local 3000, phải tải đi tải lại terminal => fix bằng cách dùng EJS
+Lần 2: lỗi do lấy màn hình login của một bên thứ 3 ( do lỗi PATH tumlum ), không đồng bộ được vào code nên p xóa đi
+Lần 3: Lỗi khi mà cho chạy login, và logout bị sai tumlum ( do render homepage chứ không phải do cookie ) => cho login, signup redirect đến '/'

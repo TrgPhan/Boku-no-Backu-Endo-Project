@@ -37,23 +37,22 @@ app.use(cookieParser('your_secret_key'));
 
 app.use(function (req, res, next) {
     res.locals.errors = [];
-    res.locals.user = null;
 
     try {
-        const token = req.signedCookies['token']; // Lấy token từ signed cookies
+        const token = req.signedCookies.token;
         if (token) {
             const decoded = jwt.verify(token, process.env.JWTSECRET);
             req.user = decoded;
-            res.locals.user = decoded; // Gán user vào res.locals
         }
     } catch (error) {
         console.error('JWT error:', error);
     }
-    console.log('req.signedCookies', req.signedCookies);
+    res.locals.user = req.user;
     next();
 });
 
-app.get('/logout', (req, res) => {
+
+app.post('/logout', (req, res) => {
     res.clearCookie('token');
     res.redirect('/');
 }) // vẫn chưa hoàn thiện
@@ -75,39 +74,6 @@ app.get('/signup', (req, res) => {
     res.render('signup', { title: 'Đăng ký' })
 })
 
-app.post('/login', async (req, res) => {
-    const { email, password } = req.body;
-    res.locals.errors = validateInput(email, password);
-
-    if (res.locals.errors.length) {
-        return res.render('login', { title: 'Login Error', errors: res.locals.errors });
-    }
-
-    try {
-        const userStatement = db.prepare('SELECT * FROM users WHERE email = ?').get(email.trim());
-
-        if (!userStatement) {
-            return res.render('login', { title: 'Login Error', errors: ['Email or password is incorrect'] });
-        }
-
-        if (!bcrypt.compareSync(password, userStatement.password)) {
-            return res.render('login', { title: 'Login Error', errors: ['Email or password is incorrect'] });
-        }
-
-        const TokenValue = jwt.sign({ exp: Math.floor(Date.now() / 1000 + 60 * 60 * 24), skycolor: "blue", user_id: userStatement.id, username: userStatement.email }, process.env.JWTSECRET);
-        res.cookie(userStatement.id, TokenValue, {
-            maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
-            httpOnly: true,
-            signed: true,
-            sameSite: 'strict'
-        });
-        return res.render('homepage', { title: 'Trang chủ' });
-    } catch (error) {
-        console.error('Database error:', error);
-        res.status(500).send('Internal Server Error');
-    }
-});
-
 app.post('/register', async (req, res) => {
     const { email, password, password_confirm } = req.body;
     res.locals.errors = validateInput(email, password, password_confirm);
@@ -126,12 +92,47 @@ app.post('/register', async (req, res) => {
         const hashedPassword = bcrypt.hashSync(password, salt);
         const mySignupState = db.prepare('INSERT INTO users(email, password) VALUES(?, ?)');
         mySignupState.run(email.trim(), hashedPassword);
-        res.render('homepage', { title: 'Trang chủ' });
+        res.redirect('/');
     } catch (error) {
         console.error('Database error:', error);
         res.status(500).send('Internal Server Error');
     }
 });
+
+app.post('/login', async (req, res) => {
+    const { email, password } = req.body;
+    res.locals.errors = validateInput(email, password);
+
+    if (res.locals.errors.length) {
+        return res.render('login', { title: 'Login Error', errors: res.locals.errors });
+    }
+
+    try {
+        const userStatement = db.prepare('SELECT * FROM users WHERE email = ?').get(email.trim());
+
+        if (!userStatement) {
+            return res.render('login', { title: 'Login Error', errors: ['Email or password is incorrect'] });
+        }
+
+        if (!bcrypt.compareSync(password, userStatement.password)) {
+            return res.render('login', { title: 'Login Error', errors: ['Email or password is incorrect'] });
+        }
+        const TokenValue = jwt.sign({ exp: Math.floor(Date.now() / 1000 + 60 * 60 * 24), skycolor: "blue", user_id: userStatement.id, username: userStatement.email }, process.env.JWTSECRET);
+
+        res.cookie('token', TokenValue, {
+            maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
+            httpOnly: true,
+            signed: true,
+            sameSite: 'strict'
+        });
+        res.redirect('/');
+    } catch (error) {
+        console.error('Database error:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+
 
 
 app.listen(port, () => {

@@ -24,7 +24,18 @@ function validateInput(email, password, passwordConfirm = null) {
 // tạo bảng users ở đây
 app.createTable = db.transaction(() => {
     db.prepare(
-        'CREATE TABLE IF NOT EXISTS users(id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT, password TEXT)'
+        `CREATE TABLE IF NOT EXISTS users(
+            id INTEGER PRIMARY KEY AUTOINCREMENT, 
+            email TEXT UNIQUE, 
+            password TEXT,
+            fullname TEXT DEFAULT ' ',
+	        phone TEXT DEFAULT ' ',
+	        address TEXT DEFAULT ' ',
+	        bio TEXT DEFAULT 'Chưa có giới thiệu',
+	        skills TEXT DEFAULT '[]',
+	        education TEXT DEFAULT '{"degree": "", "university": "", "duration": ""}',
+	        experience TEXT DEFAULT '[{"position":"","company":"","duration":"","responsibilities":[""]}]'
+        )`
     ).run();
 });
 app.createTable();
@@ -52,7 +63,40 @@ app.use(function (req, res, next) {
 });
 
 
-app.post('/logout', (req, res) => {
+app.get('/profile', (req, res) => {
+    if (!req.user) return res.redirect('/login');
+
+    const user = db.prepare(`
+        SELECT 
+            id,
+            email,
+            fullname,
+            phone,
+            address,
+            bio,
+            skills,
+            education,
+            experience
+        FROM users 
+        WHERE id = ?
+    `).get(req.user.user_id);
+
+    // Xử lý dữ liệu mặc định
+    const profileData = user ? {
+        ...user,
+        bio: user.bio || 'Chưa có giới thiệu',
+        skills: user.skills || '[]',
+        education: user.education || '{}',
+        experience: user.experience || '[]'
+    } : {};
+
+    res.render('profile', {
+        title: 'Hồ sơ cá nhân',
+        user: profileData
+    });
+});
+
+app.get('/logout', (req, res) => {
     res.clearCookie('token');
     res.redirect('/');
 }) // vẫn chưa hoàn thiện
@@ -63,6 +107,9 @@ app.get('/users', (req, res) => {
 })
 
 app.get('/', (req, res) => {
+    if (req.user) {
+        return res.render('dashboard', { title: 'Dashboard' });
+    }
     res.render('homepage', { title: 'Trang chủ' })
 })
 
@@ -118,7 +165,6 @@ app.post('/login', async (req, res) => {
             return res.render('login', { title: 'Login Error', errors: ['Email or password is incorrect'] });
         }
         const TokenValue = jwt.sign({ exp: Math.floor(Date.now() / 1000 + 60 * 60 * 24), skycolor: "blue", user_id: userStatement.id, username: userStatement.email }, process.env.JWTSECRET);
-
         res.cookie('token', TokenValue, {
             maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
             httpOnly: true,
@@ -132,9 +178,79 @@ app.post('/login', async (req, res) => {
     }
 });
 
+// Hiển thị form chỉnh sửa
+app.get('/profile/edit', (req, res) => {
+    if (!req.user) return res.redirect('/login');
 
+    const user = db.prepare(`
+        SELECT id, fullname, phone, address, bio, skills, education, experience 
+        FROM users WHERE id = ?
+    `).get(req.user.user_id);
 
+    res.render('edit_profile', {
+        title: 'Chỉnh sửa hồ sơ',
+        user: user || {}
+    });
+});
+
+// Xử lý cập nhật
+app.post('/profile/update', (req, res) => {
+    if (!req.user) return res.redirect('/login');
+
+    const { fullname, phone, address, bio, skills, education, experience } = req.body;
+    const errors = [];
+
+    // Validate dữ liệu
+    if (!fullname || fullname.trim().length < 2) errors.push('Tên phải có ít nhất 2 ký tự');
+    if (phone && !/^[0-9+\- ]+$/.test(phone)) errors.push('Số điện thoại không hợp lệ');
+
+    if (errors.length > 0) {
+        return res.render('edit_profile', {
+            title: 'Lỗi cập nhật',
+            user: req.body,
+            errors
+        });
+    }
+
+    try {
+        // Chuyển đổi dữ liệu JSON
+        const skillsArray = JSON.parse(skills || '[]');
+        const educationObj = JSON.parse(education || '{}');
+        const experienceArray = JSON.parse(experience || '[]');
+
+        db.prepare(`
+            UPDATE users SET
+                fullname = ?,
+                phone = ?,
+                address = ?,
+                bio = ?,
+                skills = ?,
+                education = ?,
+                experience = ?
+            WHERE id = ?
+        `).run(
+            fullname.trim(),
+            phone.trim(),
+            address.trim(),
+            bio.trim(),
+            JSON.stringify(skillsArray),
+            JSON.stringify(educationObj),
+            JSON.stringify(experienceArray),
+            req.user.user_id
+        );
+
+        res.redirect('/profile');
+    } catch (e) {
+        console.error('Update error:', e);
+        res.render('edit_profile', {
+            title: 'Lỗi cập nhật',
+            user: req.body,
+            errors: ['Dữ liệu không hợp lệ, vui lòng kiểm tra lại']
+        });
+    }
+});
 
 app.listen(port, () => {
     console.log(`Server running at http://localhost:${port}/`)
 })
+

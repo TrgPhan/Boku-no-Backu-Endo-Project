@@ -1,3 +1,9 @@
 Lần 1: lỗi ko run đc local 3000, phải tải đi tải lại terminal => fix bằng cách dùng EJS
 Lần 2: lỗi do lấy màn hình login của một bên thứ 3 ( do lỗi PATH tumlum ), không đồng bộ được vào code nên p xóa đi
 Lần 3: Lỗi khi mà cho chạy login, và logout bị sai tumlum ( do render homepage chứ không phải do cookie ) => cho login, signup redirect đến '/'
+Lần 4: Thử thêm các hàng vào user để quản lý thông tin vào profile. Ok done
+Lần 5:  
+    - Đã thiết kế cơ bản là hoàn thành profile.ejs nhưng gặp một vấn đề về giao diện của edit_profile và khi chỉnh sửa còn gặp 'SQLITE_BUSY'
+    - Gặp lỗi forEach ở profile.ejs là vì lỡ để định dạng của các mảng là '' và do lỗi JSON.stringify các mảng đó nên bị ko truy cập bằng forEach được. => đã fix
+Lần 6:
+    - 

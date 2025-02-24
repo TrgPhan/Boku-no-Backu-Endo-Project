@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hồ sơ - <%= user.email %>
+    </title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .profile-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .profile-section {
+            margin: 2rem 0;
+            padding: 1rem;
+            border: 1px solid #eee;
+            border-radius: 8px;
+        }
+
+        .skill-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            margin: 0.25rem;
+            background: #f0f0f0;
+            border-radius: 20px;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+
+<body>
+    <%- include('includes/general_header') %>
+
+        <main class="container">
+
+            <article class="profile-header">
+                <h2>
+                    <% if (user.fullname) { %>
+                        <%= user.fullname %>
+                            <% } else { %>
+                                <%= user.email %>
+                                    <% } %>
+                </h2>
+
+                <div class="contact-info">
+                    <% if (user.phone) { %>
+                        <p>📱 <%= user.phone %>
+                        </p>
+                        <% } %>
+
+                            <% if (user.address) { %>
+                                <p>📍 <%= user.address %>
+                                </p>
+                                <% } %>
+                </div>
+            </article>
+
+            <% if (user.bio && user.bio !=='Chưa có giới thiệu' ) { %>
+                <section class="profile-section">
+                    <h3>Giới thiệu</h3>
+                    <p>
+                        <%= user.bio %>
+                    </p>
+                </section>
+                <% } %>
+
+                    <% if (user.skills && JSON.parse(user.skills).length> 0) { %>
+                        <section class="profile-section">
+                            <h3>Kỹ năng</h3>
+                            <div>
+                                <% JSON.parse(user.skills).forEach(skill=> { %>
+                                    <span class="skill-badge">
+                                        <%= skill %>
+                                    </span>
+                                    <% }); %>
+                            </div>
+                        </section>
+                        <% } %>
+
+                            <% if (user.education && Object.keys(JSON.parse(user.education)).length> 0) { %>
+                                <section class="profile-section">
+                                    <h3>Học vấn</h3>
+                                    <% const education=JSON.parse(user.education); %>
+                                        <p><strong>
+                                                <%= education.degree %>
+                                            </strong></p>
+                                        <p>
+                                            <%= education.university %>
+                                        </p>
+                                        <p><em>
+                                                <%= education.duration %>
+                                            </em></p>
+                                </section>
+                                <% } %>
+
+                                    <% if (user.experience && JSON.parse(user.experience).length> 0) { %>
+                                        <section class="profile-section">
+                                            <h3>Kinh nghiệm</h3>
+                                            <% JSON.parse(user.experience).forEach(exp=> { %>
+                                                <article style="margin-bottom: 1.5rem;">
+                                                    <h4>
+                                                        <%= exp.position %>
+                                                    </h4>
+                                                    <p>
+                                                        <%= exp.company %>
+                                                    </p>
+                                                    <p><em>
+                                                            <%= exp.duration %>
+                                                        </em></p>
+                                                    <% if (exp.responsibilities && exp.responsibilities.length> 0) { %>
+                                                        <ul>
+                                                            <% exp.responsibilities.forEach(point=> { %>
+                                                                <li>
+                                                                    <%= point %>
+                                                                </li>
+                                                                <% }); %>
+                                                        </ul>
+                                                        <% } %>
+                                                </article>
+                                                <% }); %>
+                                        </section>
+                                        <% } %>
+                                            <section class="profile-actions">
+                                                <a href="/profile/edit" class="button">✏️ Chỉnh sửa hồ sơ</a>
+                                            </section>
+        </main>
+
+        <%- include('includes/general_footer') %>
+</body>
+
+</html>

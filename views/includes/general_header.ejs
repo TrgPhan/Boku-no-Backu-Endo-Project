@@ -1,0 +1,15 @@
+<header>
+    <h2>
+        <a href="/">My Wonderful App</a>
+    </h2>
+    <nav>
+        <% if (locals.user) { %>
+            <a href="/profile">Profile</a> |
+            <a href="/create-post">Create Post</a> |
+            <a href="/logout">Log Out</a>
+            <% } else { %>
+                <a href="/login">Log In</a> |
+                <a href="/signup">Sign Up</a>
+                <% } %>
+    </nav>
+</header>

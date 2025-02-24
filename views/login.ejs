@@ -9,43 +9,37 @@
 </head>
 
 <body>
-    <header>
-        <h2>
-            <a href="/">My Wonderful App</a> <!-- /* help us get back to the homepage */ -->
-        </h2>
-    </header>
+    <%- include('includes/general_header') %>
+        <main>
+            <h3>LoguIn Webu</h3>
+            <p>Kore wa boku no Login Webu.</p>
+            <form action="/login" method="POST">
+                <% errors.forEach(login_error=> { %>
+                    <p class="notice">
+                        <%= login_error %>
+                    </p>
+                    <% }) %>
+                        <fieldset>
 
-    <main>
-        <h3>LoguIn Webu</h3>
-        <p>Kore wa boku no Login Webu.</p>
-        <form action="/login" method="POST">
-            <% errors.forEach(login_error=> { %>
-                <p class="notice">
-                    <%= login_error %>
-                </p>
-                <% }) %>
-                    <fieldset>
+                            <legend>Create an wibu account</legend>
+                            <label>
+                                <span>Email</span>
+                                <input type="email" name="email" required style="display: block; margin-top: 5px;">
+                            </label>
+                            <label>
+                                <span>Password</span>
+                                <input type="password" name="password" required
+                                    style="display: block; margin-top: 5px;">
+                            </label>
+                            <br>
+                            <button type="submit">Log In</button>
 
-                        <legend>Create an wibu account</legend>
-                        <label>
-                            <span>Email</span>
-                            <input type="email" name="email" required style="display: block; margin-top: 5px;">
-                        </label>
-                        <label>
-                            <span>Password</span>
-                            <input type="password" name="password" required style="display: block; margin-top: 5px;">
-                        </label>
-                        <br>
-                        <button type="submit">Log In</button>
+                            <p>Don't have an account? <a href="/signup">Sign Up</a></p>
+                        </fieldset>
+            </form>
+        </main>
 
-                        <p>Don't have an account? <a href="/signup">Sign Up</a></p>
-                    </fieldset>
-        </form>
-    </main>
-
-    <footer>
-        <small>&copy; 2020 My Wonderful App</small>
-    </footer>
+        <%- include('includes/general_footer') %>
 </body>
 
 </html>

@@ -4,63 +4,129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chỉnh sửa hồ sơ - <%= user.email %>
-    </title>
+    <title>Chỉnh sửa hồ sơ</title>
     <link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css">
+    <style>
+        .form-section {
+            margin-bottom: 2rem;
+            padding: 1rem;
+            border: 1px solid #eee;
+            border-radius: 8px;
+        }
+
+        .dynamic-field {
+            margin-bottom: 1rem;
+        }
+
+        .add-button {
+            margin-top: 0.5rem;
+        }
+
+        .json-data {
+            display: none;
+        }
+    </style>
 </head>
 
 <body>
     <%- include('includes/general_header') %>
 
-        <main>
+        <main class="container">
             <h2>Chỉnh sửa hồ sơ</h2>
 
             <% if (errors.length) { %>
                 <div class="error-message">
                     <% errors.forEach(error=> { %>
-                        <p><strong>⚠️ </strong>
+                        <p>
                             <%= error %>
                         </p>
                         <% }) %>
                 </div>
                 <% } %>
 
-                    <form method="POST" action="/profile/update">
-                        <article>
-                            <label>
-                                <span>Full Name</span>
-                                <input type="text" name="fullname" value="<%= user.fullname || '' %>" required
-                                    style="display: block; margin-top: 5px;">
-                            </label>
-                            <label>
-                                <span>Phone Number</span>
-                                <input type="tel" name="phone" value="<%= user.phone || '' %>" required
-                                    style="display: block; margin-top: 5px;">
-                            </label>
-                            <label>
-                                <span>Address</span>
-                                <input type="text" name="address" value="<%= user.address || '' %>" required
-                                    style="display: block; margin-top: 5px;">
-                            </label>
-                            <label>
-                                <span>Bio</span>
-                                <textarea name="bio" required
-                                    style="display: block; margin-top: 5px;"><%= user.bio || '' %></textarea>
-                            </label>
-                        </article>
+                    <form method="POST" action="/profile/update" id="profileForm">
+                        <!-- Thông tin cơ bản -->
+                        <div class="form-section">
+                            <h3>Thông tin cá nhân</h3>
+                            <label>Họ và tên:</label>
+                            <input type="text" name="fullname" value="<%= user.fullname %>" required>
 
-                        <article>
-                            <label for="skills">Skills</label>
-                            <textarea class="json-field" id="skills" name="skills"><%= user.skills || '[]' %></textarea>
+                            <label>Số điện thoại:</label>
+                            <input type="tel" name="phone" value="<%= user.phone %>">
 
-                            <label for="education">Education</label>
-                            <textarea class="json-field" id="education"
-                                name="education"><%= user.education || '{}' %></textarea>
+                            <label>Địa chỉ:</label>
+                            <input type="text" name="address" value="<%= user.address %>">
 
-                            <label for="experience">Experience</label>
-                            <textarea class="json-field" id="experience"
-                                name="experience"><%= user.experience || '[]' %></textarea>
-                        </article>
+                            <label>Giới thiệu bản thân:</label>
+                            <textarea name="bio"><%= user.bio %></textarea>
+                        </div>
+
+                        <!-- Học vấn -->
+                        <div class="form-section">
+                            <h3>Học vấn</h3>
+                            <div id="educationFields">
+                                <% const education=JSON.parse(user.education); %>
+                                    <label>Bằng cấp:</label>
+                                    <input type="text" class="education-degree" value="<%= education.degree %>">
+
+                                    <label>Trường học:</label>
+                                    <input type="text" class="education-university" value="<%= education.university %>">
+
+                                    <label>Thời gian:</label>
+                                    <input type="text" class="education-duration" value="<%= education.duration %>">
+                            </div>
+                        </div>
+
+                        <!-- Kỹ năng -->
+                        <div class="form-section">
+                            <h3>Kỹ năng</h3>
+                            <div id="skillsContainer">
+                                <% JSON.parse(user.skills).forEach(skill=> { %>
+                                    <div class="dynamic-field">
+                                        <input type="text" class="skill-input" value="<%= skill %>">
+                                        <button type="button" class="remove-skill">×</button>
+                                    </div>
+                                    <% }); %>
+                            </div>
+                            <button type="button" id="addSkill" class="add-button">Thêm kỹ năng</button>
+                        </div>
+
+                        <!-- Kinh nghiệm -->
+                        <div class="form-section">
+                            <h3>Kinh nghiệm</h3>
+                            <div id="experienceContainer">
+                                <% JSON.parse(user.experience).forEach((exp, index)=> { %>
+                                    <div class="experience-item">
+                                        <label>Vị trí:</label>
+                                        <input type="text" class="exp-position" value="<%= exp.position %>">
+
+                                        <label>Công ty:</label>
+                                        <input type="text" class="exp-company" value="<%= exp.company %>">
+
+                                        <label>Thời gian:</label>
+                                        <input type="text" class="exp-duration" value="<%= exp.duration %>">
+
+                                        <label>Nhiệm vụ:</label>
+                                        <div class="responsibilities">
+                                            <% exp.responsibilities.forEach(resp=> { %>
+                                                <div class="dynamic-field">
+                                                    <input type="text" class="resp-input" value="<%= resp %>">
+                                                    <button type="button" class="remove-resp">×</button>
+                                                </div>
+                                                <% }); %>
+                                        </div>
+                                        <button type="button" class="add-resp">Thêm nhiệm vụ</button>
+                                    </div>
+                                    <% }); %>
+                            </div>
+                            <button type="button" id="remove-exp" class="add-button">Xóa kinh nghiệm</button> | <button
+                                type="button" id="addExperience" class="add-button">Thêm kinh nghiệm</button>
+                        </div>
+
+                        <!-- Hidden fields for JSON data -->
+                        <input type="hidden" name="skills" id="skillsData">
+                        <input type="hidden" name="education" id="educationData">
+                        <input type="hidden" name="experience" id="experienceData">
 
                         <div class="button-group">
                             <button type="submit" class="primary">Cập nhật</button>
@@ -68,6 +134,103 @@
                         </div>
                     </form>
         </main>
+
+        <script>
+            // Xử lý trường học vấn
+            function updateEducationData() {
+                const education = {
+                    degree: document.querySelector('.education-degree').value,
+                    university: document.querySelector('.education-university').value,
+                    duration: document.querySelector('.education-duration').value
+                };
+                document.getElementById('educationData').value = JSON.stringify(education);
+            }
+
+            // Xử lý kỹ năng
+            document.getElementById('addSkill').addEventListener('click', () => {
+                const newSkill = document.createElement('div');
+                newSkill.className = 'dynamic-field';
+                newSkill.innerHTML = `
+                <input type="text" class="skill-input">
+                <button type="button" class="remove-skill">×</button>
+            `;
+                document.getElementById('skillsContainer').appendChild(newSkill);
+            });
+
+            document.getElementById('skillsContainer').addEventListener('click', (e) => {
+                if (e.target.classList.contains('remove-skill')) {
+                    e.target.parentElement.remove();
+                }
+            });
+
+            // Xử lý kinh nghiệm
+            document.getElementById('addExperience').addEventListener('click', () => {
+                const newExp = document.createElement('div');
+                newExp.className = 'experience-item';
+                newExp.innerHTML = `
+                <label>Vị trí:</label>
+                <input type="text" class="exp-position">
+                
+                <label>Công ty:</label>
+                <input type="text" class="exp-company">
+                
+                <label>Thời gian:</label>
+                <input type="text" class="exp-duration">
+                
+                <label>Nhiệm vụ:</label>
+                <div class="responsibilities">
+                    <div class="dynamic-field">
+                        <input type="text" class="resp-input">
+                        <button type="button" class="remove-resp">×</button>
+                    </div>
+                </div>
+                <button type="button" class="add-resp">Thêm nhiệm vụ</button>
+            `;
+                document.getElementById('experienceContainer').appendChild(newExp);
+            });
+
+            document.getElementById('remove-exp').addEventListener('click', () => {
+                document.querySelector('.experience-item').remove();
+            });
+            document.getElementById('experienceContainer').addEventListener('click', (e) => {
+                if (e.target.classList.contains('add-resp')) {
+                    const newResp = document.createElement('div');
+                    newResp.className = 'dynamic-field';
+                    newResp.innerHTML = `
+                    <input type="text" class="resp-input">
+                    <button type="button" class="remove-resp">×</button>
+                `;
+                    e.target.previousElementSibling.appendChild(newResp);
+                }
+
+                if (e.target.classList.contains('remove-resp')) {
+                    e.target.parentElement.remove();
+                }
+            });
+
+            // Cập nhật dữ liệu trước khi submit
+            document.getElementById('profileForm').addEventListener('submit', (e) => {
+                // Cập nhật học vấn
+                updateEducationData();
+
+                // Cập nhật kỹ năng
+                const skills = Array.from(document.querySelectorAll('.skill-input'))
+                    .map(input => input.value.trim())
+                    .filter(value => value);
+                document.getElementById('skillsData').value = JSON.stringify(skills);
+
+                // Cập nhật kinh nghiệm
+                const experiences = Array.from(document.querySelectorAll('.experience-item')).map(exp => ({
+                    position: exp.querySelector('.exp-position').value.trim(),
+                    company: exp.querySelector('.exp-company').value.trim(),
+                    duration: exp.querySelector('.exp-duration').value.trim(),
+                    responsibilities: Array.from(exp.querySelectorAll('.resp-input'))
+                        .map(input => input.value.trim())
+                        .filter(value => value)
+                }));
+                document.getElementById('experienceData').value = JSON.stringify(experiences);
+            });
+        </script>
 
         <%- include('includes/general_footer') %>
 </body>

@@ -6,4 +6,11 @@ Lần 5:
     - Đã thiết kế cơ bản là hoàn thành profile.ejs nhưng gặp một vấn đề về giao diện của edit_profile và khi chỉnh sửa còn gặp 'SQLITE_BUSY'
     - Gặp lỗi forEach ở profile.ejs là vì lỡ để định dạng của các mảng là '' và do lỗi JSON.stringify các mảng đó nên bị ko truy cập bằng forEach được. => đã fix
 Lần 6:
-    - 
+    - Lỗi ở ValidatesharedText vì khi mà nhấn nộp thì hiện lỗi ko có input nào nhập vào SQLite => phải check xem SQL hoặc hàm post('create-post') hoặc phải check create_post
+    - Điểm đáng chú ý là lỗi ko insert đc thông tin bài viết ! Quan trọng
+    - Nghi ngờ là do lỗi nhập vào do table 
+    - Đã thử     
+    console.log("Before sanitize:", req.body.content);
+    console.log("After sanitize:", sanitizeHTML(req.body.content, { allowedTags: [], allowedAttributes: {} }));
+    => lỗi là ko có đầu vào
+    - đã phát hiện là lỗi của form post/create_post. fix bằng cách nhét B, I, U xuống dưới để có thể form/create_post. 

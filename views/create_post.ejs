@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trình soạn thảo</title>
+    <link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css">
+    <style>
+        .editor-container {
+            max-width: 800px;
+            margin: 0.5rem auto;
+            padding: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 0.5rem;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .toolbar button {
+            padding: 0.25rem 0.5rem;
+            background: none;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        .toolbar button:hover {
+            background: #f0f0f0;
+        }
+
+        #editor {
+            min-height: 300px;
+            padding: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            outline: none;
+            overflow-y: auto;
+        }
+
+        .active-format {
+            background-color: #e0e0e0 !important;
+        }
+    </style>
+</head>
+
+
+<body>
+    <%- include('includes/general_header') %>
+        <main class="container">
+            <h3>Trình soạn thảo</h3>
+            <form action="/create-post" method="POST" onsubmit="syncContent()">
+                <% errors.forEach(error=> { %>
+                    <p class="notice">
+                        <%= error %>
+                    </p>
+                    <% }) %>
+                        <span>Title</span>
+                        <input type="text" name="title" placeholder="Nhập tiêu đề của bạn..." required
+                            style="display: block; margin-top: 5px;">
+                        <span>Content</span>
+                        <div class="editor-container">
+                            <div contenteditable="true" required
+                                style="display: block; margin-top: 5px; width: 100%; height: 500px" id="editor"
+                                name="content"></div>
+                            <input type="hidden" name="content" id="hiddenContent">
+                            <br>
+                            <button type="submit">Đăng bài</button>
+            </form>
+            <div class="toolbar">
+                <button onclick="formatText('bold')" title="In đậm"><strong>B</strong></button>
+                <button onclick="formatText('italic')" title="In nghiêng"><em>I</em></button>
+                <button onclick="formatText('underline')" title="Gạch chân"><u>U</u></button>
+                <button onclick="formatText('insertUnorderedList')" title="Danh sách">•</button>
+                <button onclick="formatText('justifyLeft')" title="Căn trái">←</button>
+                <button onclick="formatText('justifyCenter')" title="Căn giữa">↔</button>
+                <button onclick="formatText('justifyRight')" title="Căn phải">→</button>
+                <button onclick="insertLink()" title="Chèn link">🔗</button>
+            </div>
+            </div>
+        </main>
+
+        <script>
+            function syncContent() {
+                document.getElementById('hiddenContent').value = document.getElementById('editor').innerHTML;
+            }
+
+            function formatText(command, value = null) {
+                document.execCommand(command, false, value);
+                updateButtonStates();
+            }
+
+            function insertLink() {
+                const url = prompt('Nhập URL:', 'https://');
+                if (url) {
+                    formatText('createLink', url);
+                }
+            }
+
+            function updateButtonStates() {
+                const commands = ['bold', 'italic', 'underline'];
+                commands.forEach(command => {
+                    const state = document.queryCommandState(command);
+                    document.querySelector(`button[onclick*="${command}"]`)
+                        .classList.toggle('active-format', state);
+                });
+            }
+
+            // Bắt sự kiện nhập liệu
+            document.getElementById('editor').addEventListener('input', updateButtonStates);
+        </script>
+
+        <%- include('includes/general_footer') %>
+</body>
+
+</html>

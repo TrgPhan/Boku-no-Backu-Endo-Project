@@ -1,12 +1,46 @@
 require('dotenv').config();
 const jwt = require('jsonwebtoken');
 const express = require('express')
+const sanitizeHTML = require('sanitize-html')
 const bcrypt = require('bcrypt')
 const app = express()
 const port = 3000
 const cookieParser = require('cookie-parser')
 const db = require("better-sqlite3")("database.db"); // dùng sqlite3 để tạo database.db
 db.pragma("journal_mode = WAL");
+
+function ValidateSharedPost(req) {
+    const errors = [];
+
+    if (typeof req.body.title !== 'string') {
+        req.body.title = '';
+    }
+
+    if (typeof req.body.content !== 'string') {
+        req.body.content = '';
+    }
+
+    req.body.title = sanitizeHTML(req.body.title.trim(), { allowedTags: [], allowedAttributes: {} });
+    req.body.content = sanitizeHTML(req.body.content.trim(), { allowedTags: [], allowedAttributes: {} });
+
+    if (!req.body.title) {
+        errors.push('Tiêu đề không được để trống');
+    }
+
+    if (!req.body.content) {
+        errors.push('Nội dung không được để trống');
+    }
+
+
+    return errors;
+}
+
+function mustBeLoggedIn(req, res, next) {
+    if (req.user) {
+        return next();
+    }
+    return res.redirect("/");
+}
 
 function validateInput(email, password, passwordConfirm = null) {
     const errors = [];
@@ -36,7 +70,18 @@ app.createTable = db.transaction(() => {
 	        education TEXT DEFAULT '{"degree": "", "university": "", "duration": ""}',
 	        experience TEXT DEFAULT '[{"position":"","company":"","duration":"","responsibilities":[""]}]'
         )`
-    ).run();
+    ).run()
+
+    db.prepare(
+        `CREATE TABLE IF NOT EXISTS posts(
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            author_id INTEGER,
+            title TEXT,
+            content TEXT,
+            createdDate TEXT DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(author_id) REFERENCES users(id)
+        )`
+    ).run()
 });
 app.createTable();
 
@@ -99,7 +144,7 @@ app.get('/profile', (req, res) => {
 app.get('/logout', (req, res) => {
     res.clearCookie('token');
     res.redirect('/');
-}) // vẫn chưa hoàn thiện
+})
 
 app.get('/users', (req, res) => {
     const users = db.prepare('SELECT * FROM users').all();
@@ -119,6 +164,25 @@ app.get('/login', (req, res) => {
 
 app.get('/signup', (req, res) => {
     res.render('signup', { title: 'Đăng ký' })
+})
+
+// Hiển thị form chỉnh sửa
+app.get('/profile/edit', (req, res) => {
+    if (!req.user) return res.redirect('/login');
+
+    const user = db.prepare(`
+        SELECT id, fullname, phone, address, bio, skills, education, experience 
+        FROM users WHERE id = ?
+    `).get(req.user.user_id);
+
+    res.render('edit_profile', {
+        title: 'Chỉnh sửa hồ sơ',
+        user: user || {}
+    });
+})
+
+app.get('/create-post', mustBeLoggedIn, (req, res) => {
+    res.render('create_post', { title: 'Tạo bài viết' })
 })
 
 app.post('/register', async (req, res) => {
@@ -178,22 +242,7 @@ app.post('/login', async (req, res) => {
     }
 });
 
-// Hiển thị form chỉnh sửa
-app.get('/profile/edit', (req, res) => {
-    if (!req.user) return res.redirect('/login');
 
-    const user = db.prepare(`
-        SELECT id, fullname, phone, address, bio, skills, education, experience 
-        FROM users WHERE id = ?
-    `).get(req.user.user_id);
-
-    res.render('edit_profile', {
-        title: 'Chỉnh sửa hồ sơ',
-        user: user || {}
-    });
-});
-
-// Xử lý cập nhật
 app.post('/profile/update', (req, res) => {
     if (!req.user) return res.redirect('/login');
 
@@ -248,7 +297,26 @@ app.post('/profile/update', (req, res) => {
             errors: ['Dữ liệu không hợp lệ, vui lòng kiểm tra lại']
         });
     }
-});
+})
+
+app.post('/create-post', mustBeLoggedIn, (req, res) => {
+    const { title, content } = req.body;
+    const errors = ValidateSharedPost(req);
+    if (errors.length) {
+        return res.render('create_post', {
+            title: 'Lỗi tạo bài viết',
+            errors
+        });
+    }
+
+    const postStatement = db.prepare('INSERT INTO posts(author_id, title, content, createdDate) VALUES(?, ?, ?, ?)');
+    const result = postStatement.run(req.user.user_id, title, content, new Date().toISOString());
+
+    const getPostStatement = db.prepare('SELECT * FROM posts WHERE ROWID = ?');
+    const newPost = getPostStatement.get(result.lastInsertRowid);
+    res.redirect(`/post/${newPost.id}`);
+})
+
 
 app.listen(port, () => {
     console.log(`Server running at http://localhost:${port}/`)

@@ -153,7 +153,9 @@ app.get('/users', (req, res) => {
 
 app.get('/', (req, res) => {
     if (req.user) {
-        return res.render('dashboard', { title: 'Dashboard' });
+        const postsStatement = db.prepare('SELECT * FROM posts WHERE author_id = ? ORDER BY createdDate DESC');
+        const posts = postsStatement.all(req.user.user_id);
+        return res.render('dashboard', { posts });
     }
     res.render('homepage', { title: 'Trang chủ' })
 })
@@ -183,6 +185,30 @@ app.get('/profile/edit', (req, res) => {
 
 app.get('/create-post', mustBeLoggedIn, (req, res) => {
     res.render('create_post', { title: 'Tạo bài viết' })
+})
+
+app.get('/edit-post/:id', mustBeLoggedIn, (req, res) => {
+    const post = db.prepare('SELECT * FROM posts WHERE id = ?').get(req.params.id);
+    if (post.author_id != req.user.user_id) return res.status(404).send('Not found').redirect('/');
+    if (!post) return res.status(404).send('Not found').redirect('/');
+
+    res.render('edit-post', {
+        title: 'Chỉnh sửa bài viết',
+        post
+    });
+})
+
+app.get('/post/:id', (req, res) => {
+    const post = db.prepare('SELECT p.*, u.email FROM posts p INNER JOIN users u ON p.author_id = u.id WHERE p.id = ?').get(req.params.id);
+    if (!post) return res.status(404).send('Not found').redirect('/');
+
+    const isAuthor = post.author_id == req.user.user_id;
+
+    res.render('single-post', {
+        title: post.title,
+        post,
+        isAuthor
+    });
 })
 
 app.post('/register', async (req, res) => {
@@ -299,6 +325,27 @@ app.post('/profile/update', (req, res) => {
     }
 })
 
+app.post('/edit-post/:id', mustBeLoggedIn, (req, res) => {
+    const { title, content } = req.body;
+    const errors = ValidateSharedPost(req);
+    if (errors.length) {
+        return res.render('edit-post', {
+            title: 'Lỗi chỉnh sửa bài viết',
+            errors
+        });
+    }
+
+    const post = db.prepare('SELECT * FROM posts WHERE id = ?').get(req.params.id);
+    if (!post) return res.status(404).send('Not found').redirect('/');
+
+    if (post.author_id != req.user.user_id) return res.status(403).send('Forbidden').redirect('/');
+
+    const updatePostStatement = db.prepare('UPDATE posts SET title = ?, content = ? WHERE id = ?');
+    updatePostStatement.run(title, content, req.params.id);
+
+    res.redirect(`/post/${req.params.id}`);
+})
+
 app.post('/create-post', mustBeLoggedIn, (req, res) => {
     const { title, content } = req.body;
     const errors = ValidateSharedPost(req);
@@ -317,6 +364,15 @@ app.post('/create-post', mustBeLoggedIn, (req, res) => {
     res.redirect(`/post/${newPost.id}`);
 })
 
+app.post('/delete-post/:id', mustBeLoggedIn, (req, res) => {
+    const post = db.prepare('SELECT * FROM posts WHERE id = ?').get(req.params.id);
+    if (!post) return res.status(404).send('Not found').redirect('/');
+
+    if (post.author_id != req.user.user_id) return res.status(403).send('Forbidden').redirect('/');
+
+    db.prepare('DELETE FROM posts WHERE id = ?').run(req.params.id);
+    res.redirect('/');
+})
 
 app.listen(port, () => {
     console.log(`Server running at http://localhost:${port}/`)

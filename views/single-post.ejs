@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css">
+</head>
+
+<body>
+    <%- include('includes/general_header') %>
+        <main>
+            <h1>
+                <%= post.title %>
+            </h1>
+
+            <article>
+                <small>Posted by <%= post.email %> on <%= new Date(post.createdDate).getDate() %>/<%= new
+                                Date(post.createdDate).getMonth() + 1 %>/<%= new Date(post.createdDate).getFullYear() %>
+                </small>
+                <div>
+                    <p>
+                        <%- post.content %>
+                    </p>
+                </div>
+            </article>
+            <% if (isAuthor) { %>
+                <a href="/edit-post/<%= post.id %>"><button>Edit</button></a>
+                <form style="display: inline;" action="/delete-post/<%= post.id %>" method="POST">
+                    <button>Delete</button>
+                </form>
+                <% } %>
+        </main>
+
+        <%- include('includes/general_footer') %>
+</body>
+
+</html>

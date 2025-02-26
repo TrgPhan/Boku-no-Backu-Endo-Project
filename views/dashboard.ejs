@@ -13,11 +13,24 @@
 
         <main>
             <h3>Welcome to my dashboard, mina-san!</h3>
-            <p>Lorem, ipsum dolor sit amet consectetur adipisicing elit. Ad itaque eum, inventore cupiditate qui facere
-                ea
-                quam quaerat, maxime dignissimos cumque reprehenderit minus iure voluptatem cum deserunt eligendi eos
-                eaque.
-            </p>
+            <% if(posts.length===0) { %>
+                <h4>You have no posts yet. Create one now! 🐧</a></h4>
+                <% } else { %>
+                    <h4>Hello, user <%= user.email %>. Here are your wibu posts:🐧 </h4>
+                    <% } %>
+                        <ul>
+                            <% posts.forEach(post=> { %>
+                                <li>
+                                    <a href="/post/<%= post.id %>">
+                                        <%= post.title %>
+                                    </a> on <%= new Date(post.createdDate).getDate() %>/<%= new
+                                            Date(post.createdDate).getMonth() + 1 %>/<%= new
+                                                Date(post.createdDate).getFullYear() %>
+                                </li>
+                                <% }) %>
+
+                        </ul>
+
         </main>
 
         <%- include('includes/general_footer') %>

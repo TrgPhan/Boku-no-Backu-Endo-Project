@@ -55,16 +55,16 @@
 <body>
     <%- include('includes/general_header') %>
         <main class="container">
-            <h3>Trình soạn thảo</h3>
-            <form action="/create-post" method="POST" onsubmit="syncContent()">
+            <h3>Trình chỉnh sửa</h3>
+            <form action="/edit-post/<%= post.id %>" method="POST" onsubmit="syncContent()">
                 <% errors.forEach(error=> { %>
                     <p class="notice">
                         <%= error %>
                     </p>
                     <% }) %>
                         <span>Title</span>
-                        <input type="text" name="title" placeholder="Nhập tiêu đề của bạn..." required
-                            style="display: block; margin-top: 5px;">
+                        <input type="text" value="<%- post.title %>" name="title" placeholder="Nhập tiêu đề của bạn..."
+                            required style="display: block; margin-top: 5px;">
                         <span>Content</span>
                         <div class="editor-container">
                             <div class="toolbar">
@@ -83,10 +83,12 @@
                             </div>
                             <div contenteditable="true" required
                                 style="display: block; margin-top: 5px; width: 100%; height: 500px" id="editor"
-                                name="content"></div>
+                                name="content">
+                                <%- post.content %>
+                            </div>
                             <input type="hidden" name="content" id="hiddenContent">
                             <br>
-                            <button type="submit">Đăng bài</button>
+                            <button type="submit">Lưu lại</button>
             </form>
 
             </div>

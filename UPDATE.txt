@@ -13,4 +13,7 @@ Lần 6:
     console.log("Before sanitize:", req.body.content);
     console.log("After sanitize:", sanitizeHTML(req.body.content, { allowedTags: [], allowedAttributes: {} }));
     => lỗi là ko có đầu vào
-    - đã phát hiện là lỗi của form post/create_post. fix bằng cách nhét B, I, U xuống dưới để có thể form/create_post. 
+    - đã phát hiện là lỗi của form post/create_post. fix bằng cách nhét B, I, U xuống dưới để có thể form/create_post. ( không, để lại thành type = button là được) 
+Lần 7:
+    - Xuất hiện lỗi không thể get edit-post ? Các khả năng có thể là do hàm post('edit-post'). Quên không có / ở edit-post :))))
+    
